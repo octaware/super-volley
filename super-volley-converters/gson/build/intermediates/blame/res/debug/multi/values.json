@@ -1,0 +1,26 @@
+[
+    {
+        "outputFile": "/Users/o42160/Personal/super-volley/super-volley-converters/gson/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 51,
+                    "endOffset": 102
+                },
+                "from": {
+                    "file": "/Users/o42160/Personal/super-volley/super-volley-converters/gson/src/main/res/values/strings.xml",
+                    "position": {
+                        "startLine": 1,
+                        "startColumn": 4,
+                        "startOffset": 16,
+                        "endColumn": 51,
+                        "endOffset": 63
+                    }
+                }
+            }
+        ]
+    }
+]
