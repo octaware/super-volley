@@ -21,7 +21,6 @@ android {
 dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.5'
 
-    compile group: 'org.simpleframework', name: 'simple-xml', version: '2.7.1'
     compile(project(':super-volley-library')) {
         transitive = true
     }
