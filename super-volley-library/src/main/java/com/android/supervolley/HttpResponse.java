@@ -1,7 +1,6 @@
 package com.android.supervolley;
 
 
-import com.android.supervolley.BaseRequest;
 import com.android.volley.Request;
 
 import java.util.Collections;

@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -161,7 +160,7 @@ final class ServiceMethod<R, T> {
         String tag;
 
         String relativeUrl;
-        Map<String, String> headers = Collections.emptyMap();
+        Map<String, String> headers = new HashMap<>();
         MediaType contentType;
         Set<String> relativeUrlParamNames;
         ParameterHandler<?>[] parameterHandlers;

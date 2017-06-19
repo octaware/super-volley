@@ -22,7 +22,6 @@ import java.lang.ref.SoftReference;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -60,7 +59,7 @@ class BasicNetwork implements Network {
         while (true) {
             okhttp3.Response okHttpResponse = null;
             byte[] responseContents = null;
-            Map<String, String> responseHeaders = Collections.emptyMap();
+            Map<String, String> responseHeaders = new HashMap<>();
 
             try {
                 // Gather headers.
