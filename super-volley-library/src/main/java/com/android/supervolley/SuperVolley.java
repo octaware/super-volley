@@ -398,6 +398,8 @@ public final class SuperVolley {
         private Executor callbackExecutor;
         private boolean validateEagerly;
         private boolean isSecured = false;
+        private boolean followRedirects = true;
+        private boolean followSslRedirects = true;
         private String[] publicKeys;
         private int threadPoolSize = 5;
         private final Set<Interceptor> interceptors = new HashSet<>();
@@ -603,6 +605,25 @@ public final class SuperVolley {
             return this;
         }
 
+        /**
+         * Configure the default http client to follow redirects from HTTPS to HTTP and from HTTP to HTTPS.
+         * <p>
+         * <p>If unset, protocol redirects will be followed. This is different than the built-in {@code
+         * HttpURLConnection}'s default.
+         */
+        public Builder followSslRedirects(boolean followProtocolRedirects) {
+            this.followSslRedirects = followProtocolRedirects;
+            return this;
+        }
+
+        /**
+         * Configure the default http client to follow redirects. If unset, redirects be followed.
+         */
+        public Builder followRedirects(boolean followRedirects) {
+            this.followRedirects = followRedirects;
+            return this;
+        }
+
         public Builder publicKeys(String[] publicKeys) {
             this.publicKeys = publicKeys;
             return this;
@@ -660,7 +681,8 @@ public final class SuperVolley {
                 } else if (!isSecured && publicKeys != null) {
                     throw new IllegalStateException("Please set the secure flag to true.");
                 }
-                callFactory = getDefaultOkHttpClient(isSecured, publicKeys, interceptors, logLevel);
+                callFactory = getDefaultOkHttpClient(isSecured, followRedirects, followSslRedirects,
+                        publicKeys, interceptors, logLevel);
             }
 
             Executor callbackExecutor = this.callbackExecutor;
@@ -685,7 +707,8 @@ public final class SuperVolley {
         /*
         * Returns OkHttpClient object with its sslSocketFactory and trustManager
         */
-        private OkHttpClient getDefaultOkHttpClient(boolean isSecured, String[] publicKeys,
+        private OkHttpClient getDefaultOkHttpClient(boolean isSecured, boolean followRedirects,
+                                                    boolean followProtocolRedirects, String[] publicKeys,
                                                     Collection<Interceptor> interceptors, LogLevel logLevel) {
             ClientSSLSocketFactory.setIsSecured(isSecured);
             ClientSSLSocketFactory.setPublicKeys(publicKeys);
@@ -699,6 +722,8 @@ public final class SuperVolley {
             for (Interceptor interceptor : interceptors) {
                 builder.addInterceptor(interceptor);
             }
+            builder.followRedirects(followRedirects);
+            builder.followSslRedirects(followProtocolRedirects);
             return builder.build();
         }
     }
