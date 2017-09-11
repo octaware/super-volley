@@ -25,3 +25,5 @@ dependencies {
         transitive = true
     }
 }
+
+apply from: '../../deploy.gradle'

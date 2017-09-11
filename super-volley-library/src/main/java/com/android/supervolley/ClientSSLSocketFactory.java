@@ -6,6 +6,7 @@ import com.android.volley.VolleyLog;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
@@ -17,18 +18,34 @@ class ClientSSLSocketFactory {
 
     private static final String TAG = ClientSSLSocketFactory.class.getSimpleName();
 
-    private static SSLSocketFactory socketFactory;
-    private static X509TrustManager trustManager;
-    private static CertificateValidator[] validators;
-    private static boolean isSecured = Boolean.TRUE;
-    private static String[] publicKeys;
+    private static ClientSSLSocketFactory instance;
 
-    static SSLSocketFactory getSocketFactory() {
+    private SSLSocketFactory socketFactory;
+    private X509TrustManager trustManager;
+    private CertificateValidator[] validators;
+    private boolean isSecured = Boolean.TRUE;
+    private String[] publicKeys;
+
+    private ClientSSLSocketFactory() {
+    }
+
+    static ClientSSLSocketFactory sslSocketFactory() {
+        if (instance == null)
+            instance = new ClientSSLSocketFactory();
+        return instance;
+    }
+
+    void init(boolean isSecured, String[] publicKeys) {
+        this.isSecured = isSecured;
+        this.publicKeys = publicKeys;
+    }
+
+    SSLSocketFactory getFactory() {
         if (socketFactory == null) {
             try {
-                X509TrustManager trustManager = get509TrustManager();
+                X509TrustManager manager = get509TrustManager();
                 SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, new TrustManager[]{trustManager}, null);
+                sslContext.init(null, new TrustManager[]{manager}, null);
                 socketFactory = sslContext.getSocketFactory();
             } catch (NoSuchAlgorithmException | KeyManagementException e) {
                 VolleyLog.e(TAG, "Unable to create the ssl socket factory.");
@@ -38,23 +55,23 @@ class ClientSSLSocketFactory {
         return socketFactory;
     }
 
-    static X509TrustManager get509TrustManager() {
+    X509TrustManager get509TrustManager() {
         if (trustManager == null) {
             trustManager = new X509TrustManager() {
 
                 @Override
-                public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 }
 
                 @Override
-                public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                     for (CertificateValidator validator : getValidators()) {
                         validator.validateCertificates(chain);
                     }
                 }
 
                 @Override
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];
                 }
             };
@@ -62,7 +79,7 @@ class ClientSSLSocketFactory {
         return trustManager;
     }
 
-    private static CertificateValidator[] getValidators() {
+    private CertificateValidator[] getValidators() {
         if (!isSecured) {
             return new CertificateValidator[0];
         }
@@ -74,13 +91,5 @@ class ClientSSLSocketFactory {
             validators[3] = new RootCAPublicKeyValidator(publicKeys);
         }
         return validators;
-    }
-
-    static void setIsSecured(boolean isSecured) {
-        ClientSSLSocketFactory.isSecured = isSecured;
-    }
-
-    static void setPublicKeys(String[] publicKeys) {
-        ClientSSLSocketFactory.publicKeys = publicKeys;
     }
 }

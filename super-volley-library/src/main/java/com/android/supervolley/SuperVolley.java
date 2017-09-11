@@ -27,14 +27,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.X509TrustManager;
-
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
+import static com.android.supervolley.ClientSSLSocketFactory.sslSocketFactory;
 import static java.util.Collections.unmodifiableList;
 
 /**
@@ -681,13 +679,13 @@ public final class SuperVolley {
                 } else if (!isSecured && publicKeys != null) {
                     throw new IllegalStateException("Please set the secure flag to true.");
                 }
-                callFactory = getDefaultOkHttpClient(isSecured, followRedirects, followSslRedirects,
-                        publicKeys, interceptors, logLevel);
+                callFactory = getDefaultOkHttpClient(isSecured, followRedirects,
+                        followSslRedirects, publicKeys, interceptors, logLevel);
             }
 
-            Executor callbackExecutor = this.callbackExecutor;
-            if (callbackExecutor == null) {
-                callbackExecutor = platform.defaultCallbackExecutor();
+            Executor executor = this.callbackExecutor;
+            if (executor == null) {
+                executor = platform.defaultCallbackExecutor();
             }
 
             final Network network = new BasicNetwork(new OkHttp3Stack(callFactory));
@@ -695,13 +693,13 @@ public final class SuperVolley {
 
             // Make a defensive copy of the adapters and add the default Call adapter.
             List<CallAdapter.Factory> adapterFactories = new ArrayList<>(this.adapterFactories);
-            adapterFactories.add(platform.defaultCallAdapterFactory(callbackExecutor));
+            adapterFactories.add(platform.defaultCallAdapterFactory(executor));
 
             // Make a defensive copy of the converters.
             List<Converter.Factory> converterFactories = new ArrayList<>(this.converterFactories);
 
             return new SuperVolley(requestQueue, baseUrl, converterFactories,
-                    adapterFactories, callbackExecutor, validateEagerly);
+                    adapterFactories, executor, validateEagerly);
         }
 
         /*
@@ -710,15 +708,11 @@ public final class SuperVolley {
         private OkHttpClient getDefaultOkHttpClient(boolean isSecured, boolean followRedirects,
                                                     boolean followProtocolRedirects, String[] publicKeys,
                                                     Collection<Interceptor> interceptors, LogLevel logLevel) {
-            ClientSSLSocketFactory.setIsSecured(isSecured);
-            ClientSSLSocketFactory.setPublicKeys(publicKeys);
-            SSLSocketFactory sslSocketFactory = ClientSSLSocketFactory.getSocketFactory();
-            X509TrustManager trustManager = ClientSSLSocketFactory.get509TrustManager();
+            sslSocketFactory().init(isSecured, publicKeys);
             OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                    .sslSocketFactory(sslSocketFactory, trustManager);
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-            loggingInterceptor.setLevel(logLevel);
-            builder.addInterceptor(loggingInterceptor);
+                    .sslSocketFactory(sslSocketFactory().getFactory(),
+                            sslSocketFactory().get509TrustManager());
+            builder.addInterceptor(new HttpLoggingInterceptor().setLevel(logLevel));
             for (Interceptor interceptor : interceptors) {
                 builder.addInterceptor(interceptor);
             }

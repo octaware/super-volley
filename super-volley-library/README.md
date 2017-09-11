@@ -223,7 +223,7 @@ Download [the latest AAR][4] or grab via Maven:
 ```
 or Gradle:
 ```groovy
-compile 'com.android.supervolley:super-volley:1.0.0'
+compile 'com.android.supervolley:super-volley:1.0.2'
 ```
 
 

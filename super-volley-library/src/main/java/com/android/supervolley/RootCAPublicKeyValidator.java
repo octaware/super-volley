@@ -19,7 +19,7 @@ class RootCAPublicKeyValidator implements CertificateValidator {
     @Override
     public void validateCertificates(X509Certificate[] serverCertificates) throws CertificateException {
         X509Certificate root = serverCertificates[serverCertificates.length - 1];
-        if (!publicKeys.isEmpty()) {
+        if (publicKeys.isEmpty()) {
             // skip the public key check if the user did not set any
             return;
         }
