@@ -60,10 +60,11 @@ public final class SuperVolley {
     final Executor callbackExecutor;
     final boolean validateEagerly;
     final RequestQueue requestQueue;
+    private int timeOut;
 
     SuperVolley(RequestQueue requestQueue, okhttp3.HttpUrl baseUrl,
                 List<Converter.Factory> converterFactories, List<CallAdapter.Factory> adapterFactories,
-                Executor callbackExecutor, boolean validateEagerly) {
+                Executor callbackExecutor, boolean validateEagerly, int timeOut) {
         this.baseUrl = baseUrl;
         this.converterFactories = unmodifiableList(converterFactories); // Defensive copy at call site.
         this.adapterFactories = unmodifiableList(adapterFactories); // Defensive copy at call site.
@@ -71,6 +72,7 @@ public final class SuperVolley {
         this.validateEagerly = validateEagerly;
         this.requestQueue = requestQueue;
         this.requestQueue.start();
+        this.timeOut = timeOut;
     }
 
     /**
@@ -141,7 +143,7 @@ public final class SuperVolley {
                         }
                         ServiceMethod<Object, Object> serviceMethod =
                                 (ServiceMethod<Object, Object>) loadServiceMethod(method);
-                        VolleyCall<Object> call = new VolleyCall<>(serviceMethod, args, requestQueue);
+                        VolleyCall<Object> call = new VolleyCall<>(serviceMethod, args, requestQueue, timeOut);
                         return serviceMethod.callAdapter.adapt(call);
                     }
                 });
@@ -402,6 +404,7 @@ public final class SuperVolley {
         private int threadPoolSize = 5;
         private final Set<Interceptor> interceptors = new HashSet<>();
         private LogLevel logLevel;
+        private int timeOut = 10;
 
         Builder(Platform platform) {
             this.platform = platform;
@@ -654,6 +657,16 @@ public final class SuperVolley {
         }
 
         /**
+         * @param timeOut is a timeOut for the Observable (synchronized) request
+         *                <p>
+         *                The timeOut is in seconds
+         */
+        public Builder timeOut(int timeOut) {
+            this.timeOut = timeOut;
+            return this;
+        }
+
+        /**
          * Create the {@link SuperVolley} instance using the configured values.
          * <p>
          * Note: If neither {@link #client} nor {@link #callFactory} is called a default {@link
@@ -699,7 +712,7 @@ public final class SuperVolley {
             List<Converter.Factory> converterFactories = new ArrayList<>(this.converterFactories);
 
             return new SuperVolley(requestQueue, baseUrl, converterFactories,
-                    adapterFactories, executor, validateEagerly);
+                    adapterFactories, executor, validateEagerly, timeOut);
         }
 
         /*

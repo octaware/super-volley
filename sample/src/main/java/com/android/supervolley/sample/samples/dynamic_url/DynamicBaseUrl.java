@@ -22,6 +22,7 @@ public final class DynamicBaseUrl {
         final HostSelectionInterceptor hostSelectionInterceptor = new HostSelectionInterceptor();
 
         SuperVolley volley = new SuperVolley.Builder()
+                .secure(true).publicKeys(new String[]{"test"})
                 .baseUrl("http://www.coca-cola.com/")
                 .interceptor(hostSelectionInterceptor)
                 .build();
@@ -41,7 +42,7 @@ public final class DynamicBaseUrl {
             }
         }).execute();
 
-        hostSelectionInterceptor.setHost("www.pepsi.com");
+        hostSelectionInterceptor.setHost("http://www.pepsi.com");
 
         new AsyncRequest<>(pop.robots(), new AsyncRequest.Callback<ResponseBody>() {
             @Override

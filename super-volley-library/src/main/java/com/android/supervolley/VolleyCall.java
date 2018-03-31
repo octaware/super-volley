@@ -1,7 +1,5 @@
 package com.android.supervolley;
 
-
-import com.android.supervolley.BaseRequest;
 import com.android.volley.NetworkError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -37,18 +35,20 @@ final class VolleyCall<T> implements Call<T> {
     private BaseRequest rawCall;
     private Throwable creationFailure; // Either a RuntimeException or IOException.
     private boolean executed;
+    private int timeOut;
 
-    VolleyCall(ServiceMethod<T, ?> serviceMethod, Object[] args, RequestQueue requestQueue) {
+    VolleyCall(ServiceMethod<T, ?> serviceMethod, Object[] args, RequestQueue requestQueue, int timeOut) {
         this.serviceMethod = serviceMethod;
         this.requestQueue = requestQueue;
         this.args = args;
+        this.timeOut = timeOut;
     }
 
     @SuppressWarnings("CloneDoesntCallSuperClone")
     // We are a final type & this saves clearing state.
     @Override
     public Call<T> clone() {
-        return new VolleyCall<>(serviceMethod, args, requestQueue);
+        return new VolleyCall<>(serviceMethod, args, requestQueue, timeOut);
     }
 
     @Override
@@ -214,7 +214,7 @@ final class VolleyCall<T> implements Call<T> {
         call.setFutureRequest(future);
         requestQueue.add(call);
         try {
-            HttpResponse.Builder builder = future.get(10, TimeUnit.SECONDS);
+            HttpResponse.Builder builder = future.get(timeOut, TimeUnit.SECONDS);
             return parseResponse(builder, call.getStatusCode());
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
             // exception handling
